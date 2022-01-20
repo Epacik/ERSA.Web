@@ -22,13 +22,19 @@ export class LinkWithOpenGraph extends LinkToAdd implements Serializable<LinkWit
         this.id = obj.id;
 
         for (const tag of obj.opengraph_tags) {
-            this.opengraphTags.push(new OpengraphTag().deserialize(tag));
+            this.opengraphTags.push(new OpengraphTag().deserialize(tag))
         }
 
         return this;
     }
 
     override serialize(): string {
-        return "";
+        let tags : string[] = [];
+
+        for (const tag of this.opengraphTags) {
+            tags.push(tag.serialize());
+        }
+
+        return `{"id": ${this.id}, "path": "${this.path}", "target": "${this.target}", "hide_target": ${this.hideTarget ? 1 : 0}, "opengraph_tags": [${tags.join(", ")}]}`
     }
 }
