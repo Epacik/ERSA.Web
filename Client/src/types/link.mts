@@ -2,13 +2,13 @@ import { Serializable } from "../serializable.mjs";
 
 
 export class Link implements Serializable<Link> {
-    id: bigint | null = null;
+    id: number | null = null;
     path: string = "";
     target: string = "";
     hideTarget: boolean = false;
 
     constructor();
-    constructor(id: bigint | null, path: string, target: string, hide: boolean)
+    constructor(id: number | null, path: string, target: string, hide: boolean)
     constructor() {
         if(arguments.length == 0)
         {

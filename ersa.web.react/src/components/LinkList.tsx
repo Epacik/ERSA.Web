@@ -6,6 +6,7 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import ILinkListState from "./states/ILinkListState";
 import { AdminApi } from '../lib/Client/js/adminApi.mjs';
 import AddLinkDialog from "./AddLinkDialog";
+import EditLinkDialog from "./EditLinkDialog";
 
 export default class LinkList extends React.Component<{}, ILinkListState> {
     client: AdminApi.Client;
@@ -25,11 +26,16 @@ export default class LinkList extends React.Component<{}, ILinkListState> {
         this.refreshButtonClicked  = this.refreshButtonClicked.bind(this);
         this.listGroupItemClicked  = this.listGroupItemClicked.bind(this);
         this.addButtonClick        = this.addButtonClick.bind(this);
+        this.editButtonClick       = this.editButtonClick.bind(this);
         this.removeButtonClick     = this.removeButtonClick.bind(this);
-        this.addLinkDialogSaved    = this.addLinkDialogSaved.bind(this);
-        this.addLinkSaveCancelled  = this.addLinkSaveCancelled.bind(this);
+        this.addOrEditLinkDialogSaved    = this.addOrEditLinkDialogSaved.bind(this);
+        this.addOrEditLinkSaveCancelled  = this.addOrEditLinkSaveCancelled.bind(this);
 
         this.client = new AdminApi.Client();
+        
+    }
+
+    componentDidMount() {
         this.search("");
     }
 
@@ -66,6 +72,16 @@ export default class LinkList extends React.Component<{}, ILinkListState> {
         }));
     }
 
+    editButtonClick() {
+        if(this.selectedLink === -1){
+            return;
+        }
+
+        this.setState(current => ({
+            showEditLink: true,
+        }));
+    }
+
     async removeButtonClick() {
         if(this.selectedLink == -1) {
             return;
@@ -82,20 +98,21 @@ export default class LinkList extends React.Component<{}, ILinkListState> {
         await this.search(this.state.searchString);
     }
 
-
-    async addLinkDialogSaved() {
+    addOrEditLinkDialogSaved() {
         this.setState(c => ({
             showAddLink: false,
+            showEditLink: false,
         }));
         this.search(this.state.searchString);
     }
 
-    addLinkSaveCancelled() {
+    addOrEditLinkSaveCancelled() {
         this.setState(c => ({
             showAddLink: false,
+            showEditLink: false, 
         }));
+        this.search(this.state.searchString);
     }
-
 
     async search(searchString: string) {
         let result = await this.client.listLinksAsync(searchString);
@@ -124,14 +141,15 @@ export default class LinkList extends React.Component<{}, ILinkListState> {
                     <span>
                         <FontAwesomeIcon icon={faSearch}/>
                         <input className="LinkList-searchInput" 
+                               placeholder="Wyszukaj"
                                onChange={this.searchInputChanged}
                                onKeyPress={this.searchInputKeyPressed} />
                     </span>
                 </Container>
             </Navbar>
-            <section className="LinkList-List-Wrapper">
+            <div className="LinkList-List-Wrapper">
                 <ListGroup className="LinkList-List">
-                    {this.state.links.map((x, i) => 
+                    {this.state.links.sort(x => x.path).map((x, i) => 
                         <ListGroup.Item id={`LinkList-List-Item-${i}`} 
                                         key={`LinkList-List-Item-${i}`} 
                                         data-index={`${i}`}
@@ -142,7 +160,7 @@ export default class LinkList extends React.Component<{}, ILinkListState> {
                         </ListGroup.Item>)
                     }
                 </ListGroup>
-            </section>
+            </div>
             <div className="LinkList-ButtonWrapper">
                 <Button variant="outline-primary" 
                         size="sm"
@@ -151,7 +169,8 @@ export default class LinkList extends React.Component<{}, ILinkListState> {
                 </Button> 
 
                 <Button variant="outline-primary" 
-                        size="sm">
+                        size="sm"
+                        onClick={this.editButtonClick}>
                     Edytuj
                 </Button> 
 
@@ -162,7 +181,10 @@ export default class LinkList extends React.Component<{}, ILinkListState> {
                 </Button>
             </div>
             {this.state.showAddLink &&
-                <AddLinkDialog linkSaved={this.addLinkDialogSaved} linkSaveCancelled={this.addLinkSaveCancelled} />
+                <AddLinkDialog linkSaved={this.addOrEditLinkDialogSaved} linkSaveCancelled={this.addOrEditLinkSaveCancelled} />
+            }
+            {this.state.showEditLink && 
+                <EditLinkDialog linkSaved={this.addOrEditLinkDialogSaved} linkSaveCancelled={this.addOrEditLinkSaveCancelled} linkId={this.state.links[this.selectedLink].id} />
             }
 
         </section>;
